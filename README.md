@@ -42,4 +42,17 @@ COPY src ./src
 RUN mvn -e -B package
 CMD ["java", "-jar", "/app/app.jar"]
 
+### Aplicar MultiStage Build
 
+Con el motivo de que la imagen tiene cosas que no necesitamos (binario de maven). Creamos diferentes stage y copiar archivos de una etapa a la otra. 
+
+FROM maven:3.6-jdk-8-alpine AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn -e -B dependency:resolver
+COPY src ./src
+RUN mvn -e -B package
+
+FROM openjdk:8-jre-alpine
+COPY --from=builder /app/target/app.jar
+CMD ["java", "-jar", "/app/app.jar"]
